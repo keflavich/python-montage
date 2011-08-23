@@ -1,4 +1,5 @@
 import os
+import glob
 import shutil as sh
 import warnings
 import tempfile
@@ -155,7 +156,7 @@ try:
                 header=cubefile[0].header)
 
         # generate a blank HDU to store the eventual projected cube
-         
+
         # first must remove END card from .hdr file
         header_temp = header_hdr.replace(".hdr","_tmp.hdr")
         headerlines = open(header_hdr,'r').readlines()[:-1]
@@ -268,7 +269,7 @@ def reproject(in_images, out_images, header=None, bitpix=None,
             (i.e. whether cropping is unacceptable).
 
         *silent_cleanup* [ True | False ]  (default False)
-            Hide messages related to tmp directory removal 
+            Hide messages related to tmp directory removal
 
     Optional Arguments (multiple files only)
 
@@ -370,6 +371,10 @@ def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
     if not combine in ['mean', 'median', 'count']:
         raise Exception("combine should be one of mean/median/count")
 
+    # Check that there are files in the input directory
+    if len(glob.glob('%s/*' % input_dir)) == 0:
+        raise Exception("No files in input directory")
+
     # Find path to input and output directory
     input_dir = os.path.abspath(input_dir) + "/"
     output_dir = os.path.abspath(output_dir) + "/"
@@ -383,6 +388,7 @@ def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
     else:
         work_dir = tempfile.mkdtemp() + '/'
 
+    images_raw_all_tbl = work_dir + 'images_raw_all.tbl'
     images_raw_tbl = work_dir + 'images_raw.tbl'
     images_projected_tbl = work_dir + 'images_projected.tbl'
     images_corrected_tbl = work_dir + 'images_corrected.tbl'
@@ -426,12 +432,16 @@ def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
 
     # List frames to mosaic
     print "Listing raw frames"
-    m.mImgtbl(raw_dir, images_raw_tbl, img_list=imglist, corners=True)
+    m.mImgtbl(raw_dir, images_raw_all_tbl, img_list=imglist, corners=True)
 
     # Compute header if needed
     if not header:
         print "Computing optimal header"
-        m.mMakeHdr(images_raw_tbl, header_hdr)
+        m.mMakeHdr(images_raw_all_tbl, header_hdr)
+        images_raw_tbl = images_raw_all_tbl
+    else:
+        print "Checking for coverage"
+        m.mCoverageCheck(images_raw_all_tbl, images_raw_tbl, mode='header', header=header_hdr)
 
     # Projecting raw frames
     print "Projecting raw frames"
