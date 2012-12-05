@@ -164,12 +164,12 @@ try:
         w.writelines([line for line in headerlines])
         w.close()
 
-        # when creating the new header, allow the 3rd axis to be 
+        # when creating the new header, allow the 3rd axis to be
         # set by the input data cube
         newheader = pyfits.Header()
         newheader.fromTxtFile(header_temp)
         blank_data = numpy.zeros(
-                [cubefile[0].header.get('NAXIS3'),  
+                [cubefile[0].header.get('NAXIS3'),
                 newheader.get('NAXIS2'),
                 newheader.get('NAXIS1')]
                 )
@@ -214,7 +214,7 @@ def mProject_auto(*args, **kwargs):
 
 def reproject(in_images, out_images, header=None, bitpix=None,
     north_aligned=False, system=None, equinox=None, factor=None, common=False,
-    exact_size=False, cleanup=True, silent_cleanup=False):
+    exact_size=False, hdu=None, cleanup=True, silent_cleanup=False):
     '''
     General-purpose reprojection routine.
 
@@ -267,6 +267,9 @@ def reproject(in_images, out_images, header=None, bitpix=None,
         *exact_size* [ True | False ]
             Whether to reproject the image(s) to the exact header specified
             (i.e. whether cropping is unacceptable).
+
+        *hdu* [ value ]
+            The HDU to use in the file(s)
 
         *silent_cleanup* [ True | False ]  (default False)
             Hide messages related to tmp directory removal
@@ -344,7 +347,7 @@ def reproject(in_images, out_images, header=None, bitpix=None,
         os.mkdir(final_dir + '%i' % i)
 
         mProject_auto(in_images[i], final_dir + '%i/image_tmp.fits' % i,
-                      header_hdr)
+                      header_hdr, hdu=hdu)
 
         if exact_size:
             m.mImgtbl(final_dir + '%i' % i, images_tmp_tbl, corners=True)
@@ -470,7 +473,7 @@ def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
         sh.copy(corrections_tbl, output_dir)
 
         # Mosaicking frames
-        print "Mosaicking BCD frames"
+        print "Mosaicking frames"
 
         m.mImgtbl(corrected_dir, images_corrected_tbl)
         m.mAdd(images_corrected_tbl, header_hdr, output_dir + 'mosaic64.fits',
@@ -481,7 +484,7 @@ def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
     else:
 
         # Mosaicking frames
-        print "Mosaicking BCD frames"
+        print "Mosaicking frames"
 
         m.mAdd(images_projected_tbl, header_hdr, output_dir + 'mosaic64.fits',
                img_dir=projected_dir, type=combine, exact=exact_size)
