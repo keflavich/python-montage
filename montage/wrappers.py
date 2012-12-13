@@ -470,7 +470,7 @@ def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
         sh.copy(corrections_tbl, output_dir)
 
         # Mosaicking frames
-        print "Mosaicking BCD frames"
+        print "Mosaicking frames"
 
         m.mImgtbl(corrected_dir, images_corrected_tbl)
         m.mAdd(images_corrected_tbl, header_hdr, output_dir + 'mosaic64.fits',
@@ -481,7 +481,7 @@ def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
     else:
 
         # Mosaicking frames
-        print "Mosaicking BCD frames"
+        print "Mosaicking frames"
 
         m.mAdd(images_projected_tbl, header_hdr, output_dir + 'mosaic64.fits',
                img_dir=projected_dir, type=combine, exact=exact_size)
