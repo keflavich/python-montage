@@ -4,8 +4,15 @@ import os,shutil
 import glob
 import tempfile
 import time
-# this is a non-relative import: is it OK to use in a script?
-import montage
+
+# hack because montage.py will self-import...
+# there MUST be a better way to do this
+import sys
+for path in sys.path:
+    if path[-3:] == "bin":
+        sys.path.remove(path)
+
+import montage.wrappers as mw
 
 def wrapper(args, outfile=None, tmpdir='tmp', header='header.hdr',
         exact_size=True, combine='median', getheader=False, copy=False,
@@ -79,7 +86,7 @@ def wrapper(args, outfile=None, tmpdir='tmp', header='header.hdr',
             "exact_size=%s, combine=%s, background_match=%s)") % \
             (dir, dir, dir, options.header, options.exact, options.combine,
                     options.background_match)
-    montage.wrappers.mosaic(dir,'%s/mosaic' % dir,header='%s/%s' %
+    mw.mosaic(dir,'%s/mosaic' % dir,header='%s/%s' %
             (dir,os.path.split(header)[-1]), exact_size=exact_size,
             combine=combine, background_match=background_match,
             hdu=hdu)
@@ -110,7 +117,7 @@ if __name__ == "__main__":
     parser.add_option("--tmpdir",default="tmp",help="Alternative name for temporary directory (default 'tmp')")
     parser.add_option("--tmpdrive",default='/Volumes/disk4/var/tmp',help="The temporary directory in which to do coadding (important that it is on the same physical HD)")
     parser.add_option("--hdu",default=None,help="Which HDU to use (applies to ALL files)")
-    parser.add_option("--remove_tmpdir",default=False,help="Remove the temporary directory at the start?")
+    parser.add_option("--remove_tmpdir",default=False,help="Remove the temporary directory at the start?",action='store_true')
 
     parser.set_usage("%prog outfile=filename.fits *.fits combine=median")
     parser.set_description(
@@ -138,6 +145,6 @@ if __name__ == "__main__":
             combine=options.combine, getheader=options.get_header,
             copy=options.copy, background_match=options.background_match,
             tmpdrive=options.tmpdrive, remove_tmpdir=options.remove_tmpdir,
-            hdu=options.hdu)
+            hdu=int(options.hdu))
 
 

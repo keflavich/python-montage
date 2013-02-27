@@ -458,7 +458,7 @@ def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
                     raw_dir=raw_dir, mpi=mpi, n_proc=n_proc, exact=exact_size)
     else:
         import atpy
-        table = atpy.Table.read(images_raw_tbl,format='ipac')
+        table = atpy.Table(images_raw_tbl,type='ipac')
         table_filtered = table.rows(*numpy.where(table['hdu']==hdu))
         table_filtered.write(images_raw_tbl,overwrite=True)
         m.mProjExec(images_raw_tbl, header_hdr, projected_dir, stats_tbl,
