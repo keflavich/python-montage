@@ -42,6 +42,8 @@ def wrapper(args, outfile=None, tmpdir='tmp', header='header.hdr',
       --hdu=HDUID           Which HDU to use (applies to ALL images!)
     """
 
+    tempfile.tempdir = tmpdrive
+
     filelist = []
     if type(args) is str:
         raise TypeError("Args must be a list of glob expressions")
@@ -72,7 +74,11 @@ def wrapper(args, outfile=None, tmpdir='tmp', header='header.hdr',
     print "Changing directory to %s, with old dir %s" % (tmpdir,olddir)
     os.chdir(tmpdir+'/')
     dir = os.getcwd()
-    print "Beginning montage operations: montage.wrappers.mosaic(%s,'%s/mosaic',header='%s/%s', exact_size=%s, combine=%s, background_match=%s)" % (dir,dir,dir,header,exact_size,combine,background_match)
+    print ("Beginning montage operations: "+
+            "montage.wrappers.mosaic(%s,'%s/mosaic',header='%s/%s', "+
+            "exact_size=%s, combine=%s, background_match=%s)") % \
+            (dir, dir, dir, options.header, options.exact, options.combine,
+                    options.background_match)
     montage.wrappers.mosaic(dir,'%s/mosaic' % dir,header='%s/%s' %
             (dir,os.path.split(header)[-1]), exact_size=exact_size,
             combine=combine, background_match=background_match,
@@ -104,6 +110,7 @@ if __name__ == "__main__":
     parser.add_option("--tmpdir",default="tmp",help="Alternative name for temporary directory (default 'tmp')")
     parser.add_option("--tmpdrive",default='/Volumes/disk4/var/tmp',help="The temporary directory in which to do coadding (important that it is on the same physical HD)")
     parser.add_option("--hdu",default=None,help="Which HDU to use (applies to ALL files)")
+    parser.add_option("--remove_tmpdir",default=False,help="Remove the temporary directory at the start?")
 
     parser.set_usage("%prog outfile=filename.fits *.fits combine=median")
     parser.set_description(
@@ -122,51 +129,15 @@ if __name__ == "__main__":
 
     options,args = parser.parse_args()
 
-    tempfile.tempdir = options.tmpdrive
     
     if options.outfile is None:
         raise ValueError("Must specify outfile name")
 
-    filelist = []
-    for a in args:
-        filelist += glob.glob(a)
-        
-    print filelist
+    wrapper(args, outfile=options.outfile, tmpdir=options.tmpdir,
+            header=options.header, exact_size=options.exact,
+            combine=options.combine, getheader=options.get_header,
+            copy=options.copy, background_match=options.background_match,
+            tmpdrive=options.tmpdrive, remove_tmpdir=options.remove_tmpdir,
+            hdu=options.hdu)
 
-    #echo "Creating temporary directory and sym-linking all files into it"
-    print "Creating temporary directory"
-    os.mkdir(options.tmpdir+"/")
-    if options.copy:
-        print "Copying all files into %s" % options.tmpdir
-        for fn in filelist:
-            shutil.copy(fn,'%s/%s' % (options.tmpdir,os.path.split(fn)[-1]))
-        shutil.copy(options.header,'%s/%s' % (options.tmpdir,os.path.split(options.header)[-1]))
-    else:
-        print "Hard-linking (not sym-linking) all files into %s" % options.tmpdir
-        for fn in filelist:
-            os.link(fn,'%s/%s' % (options.tmpdir,os.path.split(fn)[-1]))
-        os.link(options.header,'%s/%s' % (options.tmpdir, os.path.split(options.header)[-1]))
 
-    olddir = os.getcwd()
-    os.chdir(options.tmpdir+'/')
-    dir = os.getcwd()
-    print ("Beginning montage operations: "+
-            "montage.wrappers.mosaic(%s,'%s/mosaic',header='%s/%s', "+
-            "exact_size=%s, combine=%s, background_match=%s)") % 
-            (dir, dir, dir, options.header, options.exact, options.combine,
-                    options.background_match)
-    montage.wrappers.mosaic(dir,'%s/mosaic' % dir,header='%s/%s' %
-            (dir,os.path.split(options.header)[-1]), exact_size=options.exact,
-            combine=options.combine, background_match=options.background_match,
-            hdu=options.background_match)
-
-    time.sleep(1)
-
-    os.chdir(olddir)
-    if os.path.exists(options.tmpdir+'/mosaic/mosaic.fits'):
-        shutil.move(options.tmpdir+'/mosaic/mosaic.fits',options.outfile)
-        print "Successfully created %s" % options.outfile
-    else:
-        print "WARNING: Did not delete %s/ because %s/mosaic/mosaic.fits was not found." % (options.tmpdir,options.tmpdir)
-
-    shutil.rmtree(options.tmpdir+'/')
