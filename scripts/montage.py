@@ -75,7 +75,8 @@ def wrapper(args, outfile=None, tmpdir='tmp', header='header.hdr',
     print "Beginning montage operations: montage.wrappers.mosaic(%s,'%s/mosaic',header='%s/%s', exact_size=%s, combine=%s, background_match=%s)" % (dir,dir,dir,header,exact_size,combine,background_match)
     montage.wrappers.mosaic(dir,'%s/mosaic' % dir,header='%s/%s' %
             (dir,os.path.split(header)[-1]), exact_size=exact_size,
-            combine=combine, background_match=background_match)
+            combine=combine, background_match=background_match,
+            hdu=hdu)
 
     time.sleep(1)
 
@@ -102,6 +103,7 @@ if __name__ == "__main__":
     parser.add_option("--background_match",default=False,action='store_true',help="background_match images?")
     parser.add_option("--tmpdir",default="tmp",help="Alternative name for temporary directory (default 'tmp')")
     parser.add_option("--tmpdrive",default='/Volumes/disk4/var/tmp',help="The temporary directory in which to do coadding (important that it is on the same physical HD)")
+    parser.add_option("--hdu",default=None,help="Which HDU to use (applies to ALL files)")
 
     parser.set_usage("%prog outfile=filename.fits *.fits combine=median")
     parser.set_description(
@@ -155,7 +157,8 @@ if __name__ == "__main__":
                     options.background_match)
     montage.wrappers.mosaic(dir,'%s/mosaic' % dir,header='%s/%s' %
             (dir,os.path.split(options.header)[-1]), exact_size=options.exact,
-            combine=options.combine, background_match=options.background_match)
+            combine=options.combine, background_match=options.background_match,
+            hdu=options.background_match)
 
     time.sleep(1)
 
