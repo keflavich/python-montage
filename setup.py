@@ -17,6 +17,7 @@ setup(name='python-montage',
       provides=['montage'],
       cmdclass={'build_py': build_py},
       keywords=['Scientific/Engineering'],
+      scripts=['scripts/montage.py'],
       classifiers=[
                    "Development Status :: 4 - Beta",
                    "Programming Language :: Python",

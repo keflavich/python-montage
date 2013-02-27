@@ -58,8 +58,9 @@ try:
     import numpy
 
     def reproject_cube(in_image, out_image, header=None, bitpix=None,
-        north_aligned=False, system=None, equinox=None, factor=None, common=False,
-        cleanup=True, clobber=False, silent_cleanup=True):
+            north_aligned=False, system=None, equinox=None, factor=None,
+            common=False, cleanup=True, clobber=False, silent_cleanup=True,
+            hdu=0):
         '''
         Cube reprojection routine.
 
@@ -108,6 +109,10 @@ try:
                 Hide messages related to tmp directory removal (there will be one
                 for each plane of the cube if set to False)
 
+            *hdu* [ int | string ] (default 0)
+                The HDU ID or number to use if the file is a multi-extension
+                FITS file
+
         '''
 
         if header:
@@ -147,13 +152,13 @@ try:
                 system=system, equinox=equinox)
 
         cubefile = pyfits.open(in_image)
-        if len(cubefile[0].data.shape) != 3 or cubefile[0].header.get('NAXIS') != 3:
+        if len(cubefile[hdu].data.shape) != 3 or cubefile[hdu].header.get('NAXIS') != 3:
             raise Exception("Cube file must have 3 dimensions")
 
         # a temporary HDU that will be used to hold different data each time
         # and reproject each plane separately
-        planefile = pyfits.PrimaryHDU(data=cubefile[0].data[0,:,:],
-                header=cubefile[0].header)
+        planefile = pyfits.PrimaryHDU(data=cubefile[hdu].data[0,:,:],
+                header=cubefile[hdu].header)
 
         # generate a blank HDU to store the eventual projected cube
 
@@ -169,13 +174,13 @@ try:
         newheader = pyfits.Header()
         newheader.fromTxtFile(header_temp)
         blank_data = numpy.zeros(
-                [cubefile[0].header.get('NAXIS3'),
+                [cubefile[hdu].header.get('NAXIS3'),
                 newheader.get('NAXIS2'),
                 newheader.get('NAXIS1')]
                 )
         newcube = pyfits.PrimaryHDU(data=blank_data,header=newheader)
 
-        for ii, plane in enumerate(cubefile[0].data):
+        for ii, plane in enumerate(cubefile[hdu].data):
 
             os.mkdir(final_dir + '%i' % ii)
 
@@ -369,7 +374,7 @@ def reproject(in_images, out_images, header=None, bitpix=None,
 def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
            background_match=False, imglist=None, combine="mean",
            exact_size=False, cleanup=True, bitpix=-32, level_only=True,
-           work_dir=None):
+           work_dir=None, hdu=None):
 
     if not combine in ['mean', 'median', 'count']:
         raise Exception("combine should be one of mean/median/count")
@@ -448,8 +453,17 @@ def mosaic(input_dir, output_dir, header=None, mpi=False, n_proc=8,
 
     # Projecting raw frames
     print "Projecting raw frames"
-    m.mProjExec(images_raw_tbl, header_hdr, projected_dir, stats_tbl,
-                raw_dir=raw_dir, mpi=mpi, n_proc=n_proc, exact=exact_size)
+    if hdu is None:
+        m.mProjExec(images_raw_tbl, header_hdr, projected_dir, stats_tbl,
+                    raw_dir=raw_dir, mpi=mpi, n_proc=n_proc, exact=exact_size)
+    else:
+        import atpy
+        table = atpy.Table.read(images_raw_tbl,format='ipac')
+        table_filtered = table.rows(*numpy.where(table['hdu']==hdu))
+        table_filtered.write(images_raw_tbl,overwrite=True)
+        m.mProjExec(images_raw_tbl, header_hdr, projected_dir, stats_tbl,
+                    raw_dir=raw_dir, mpi=mpi, n_proc=n_proc, exact=exact_size)
+
 
     # List projected frames
     m.mImgtbl(projected_dir, images_projected_tbl)

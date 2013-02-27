@@ -1338,8 +1338,8 @@ def mHdrtbl(directory, images_table, recursive=False, corners=False,
 
 
 def mImgtbl(directory, images_table, recursive=False, corners=False,
-          include_area=False, debug=False, output_invalid=False,
-          status_file=None, fieldlist=None, img_list=None):
+        include_area=False, debug=False, output_invalid=False,
+        status_file=None, fieldlist=None, img_list=None, hdu=None):
     '''
     mImgtbl extracts the FITS header geometry information from a set of files
     and creates an ASCII image metadata table which is used by several of the
@@ -1402,6 +1402,10 @@ def mImgtbl(directory, images_table, recursive=False, corners=False,
         *img_list* [ value ]
             mImgtbl will only process files with names specified in table
             img_list, ignoring an_y other files in the directory.
+
+        *hdu* [ None | value ]
+            Filter based on an HDU?  In this first implementation, you must
+            provide a single value, e.g. 0 or 1.
     '''
     command = "mImgtbl"
     if recursive:
