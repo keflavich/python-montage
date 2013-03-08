@@ -140,11 +140,13 @@ if __name__ == "__main__":
     if options.outfile is None:
         raise ValueError("Must specify outfile name")
 
+    hduid = int(options.hdu) if options.hdu is not None else None
+
     wrapper(args, outfile=options.outfile, tmpdir=options.tmpdir,
             header=options.header, exact_size=options.exact,
             combine=options.combine, getheader=options.get_header,
             copy=options.copy, background_match=options.background_match,
             tmpdrive=options.tmpdrive, remove_tmpdir=options.remove_tmpdir,
-            hdu=int(options.hdu))
+            hdu=hduid)
 
 
