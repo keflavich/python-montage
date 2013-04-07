@@ -115,7 +115,7 @@ if __name__ == "__main__":
     parser.add_option("--copy",default=False,action='store_true',help="Copy files instead of linking")
     parser.add_option("--background_match",default=False,action='store_true',help="background_match images?")
     parser.add_option("--tmpdir",default="tmp",help="Alternative name for temporary directory (default 'tmp')")
-    parser.add_option("--tmpdrive",default='/Volumes/disk4/var/tmp',help="The temporary directory in which to do coadding (important that it is on the same physical HD)")
+    parser.add_option("--tmpdrive",default='/var/tmp',help="The temporary directory in which to do coadding (important that it is on the same physical HD)")
     parser.add_option("--hdu",default=None,help="Which HDU to use (applies to ALL files)")
     parser.add_option("--remove_tmpdir",default=False,help="Remove the temporary directory at the start?",action='store_true')
 
